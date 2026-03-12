@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ᴛʀᴇɴᴅ ᴇᴍᴘɪʀᴇ | الإصدار الملكي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00f2fe;
+            --secondary: #4facfe;
+            --accent: #fbc531;
+            --dark-bg: #0a0a0b;
+            --card-bg: rgba(15, 15, 15, 0.9);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: var(--dark-bg);
+            margin: 0; min-height: 100vh;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden; color: white;
+        }
+
+        /* خلفية الجزيئات */
+        .bg-animate {
+            position: fixed; inset: 0; z-index: -1;
+            background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%);
+        }
+        .bg-animate::after {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('https://www.transparenttextures.com/patterns/stardust.png');
+            opacity: 0.3; animation: stars 50s linear infinite;
+        }
+        @keyframes stars { from { background-position: 0 0; } to { background-position: 10000px 5000px; } }
+
+        /* شاشة الترحيب */
+        #overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+            z-index: 5000; display: flex; justify-content: center; align-items: center;
+            backdrop-filter: blur(25px); transition: 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .welcome-card {
+            background: var(--card-bg); 
+            border: 2px solid rgba(0, 242, 254, 0.5);
+            padding: 40px 30px; border-radius: 40px; text-align: center;
+            width: 90%; max-width: 400px; 
+            box-shadow: 0 0 60px rgba(0, 242, 254, 0.3), inset 0 0 20px rgba(0, 242, 254, 0.1);
+            animation: superEntrance 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-card::before {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: conic-gradient(transparent, rgba(0, 242, 254, 0.2), transparent 30%);
+            animation: rotateGlow 4s linear infinite;
+        }
+
+        @keyframes rotateGlow { 100% { transform: rotate(360deg); } }
+
+        @keyframes superEntrance {
+            0% { transform: scale(0.5) translateY(100px); opacity: 0; filter: blur(20px); }
+            100% { transform: scale(1) translateY(0); opacity: 1; filter: blur(0); }
+        }
+
+        .welcome-card h2 {
+            font-size: 32px; font-weight: 900; margin-bottom: 25px;
+            background: linear-gradient(45deg, #fff, var(--primary));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        .welcome-card p {
+            font-size: 19px; line-height: 1.7; color: #f0f0f0; margin-bottom: 35px;
+            font-weight: 500; text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .main-container {
+            width: 95%; max-width: 450px; text-align: center; z-index: 10;
+        }
+
+        h1 {
+            font-size: 35px; font-weight: 900; margin-bottom: 20px;
+            background: linear-gradient(45deg, #fff, var(--primary), var(--accent));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .input-group { position: relative; margin-bottom: 30px; }
+        .q-input {
+            width: 100%; padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05); color: white; font-size: 18px;
+            text-align: center; outline: none; transition: 0.3s;
+        }
+
+        .wheel-outer {
+            position: relative; width: 340px; height: 340px; margin: 0 auto 30px;
+            padding: 10px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            box-shadow: 0 0 50px rgba(0, 242, 254, 0.4);
+        }
+        .wheel-inner { width: 100%; height: 100%; background: #000; border-radius: 50%; position: relative; overflow: hidden; }
+        canvas { width: 100%; height: 100%; transition: transform 8s cubic-bezier(0.1, 0, 0, 1); }
+
+        .spin-button {
+            width: 100%; padding: 22px; border-radius: 25px; border: none;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: #000; font-size: 22px; font-weight: 900; cursor: pointer;
+            box-shadow: 0 10px 30px rgba(79, 172, 254, 0.4); transition: 0.3s;
+        }
+
+        #resultOverlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.3);
+            z-index: 6000; display: none; justify-content: center; align-items: center;
+            backdrop-filter: blur(8px);
+        }
+        .result-card {
+            background: rgba(15, 15, 15, 0.8); border: 1px solid var(--primary); 
+            padding: 25px 20px; border-radius: 30px; text-align: center; 
+            width: 80%; max-width: 300px; animation: bounceIn 0.5s ease;
+        }
+
+        @keyframes bounceIn { 0% { transform: scale(0.7); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+    </style>
+</head>
+<body>
+
+<div class="bg-animate"></div>
+
+<div id="overlay">
+    <div class="welcome-card">
+        <h2>اكلكم شوفو  </h2>
+        <p>هاي الفعالية سويناه للضحك والونسة بيناتنا. ممنوع الزعل! استخدموا أسئلة حلوة وخليكم بروح رياضية 😉✨</p>
+        <button class="spin-button" style="padding: 18px; font-size: 20px; position: relative; z-index: 10;" onclick="closeWelcome()"> دخول للفعالية  🚀</button>
+    </div>
+</div>
+
+<div id="resultOverlay">
+    <div class="result-card">
+        <div class="res-title" style="color: var(--primary); font-size: 11px; margin-bottom: 10px;">بخصوص سؤالك</div>
+        <div class="res-question" id="resQ" style="font-size: 16px; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">السؤال هنا؟</div>
+        <div style="font-size: 10px; color: #aaa; margin-bottom: 5px;">وقع الاختيار على:</div>
+        <span class="res-name" id="resName" style="font-size: 30px; font-weight: 900; background: linear-gradient(to right, var(--accent), #fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: block; margin-bottom: 20px;">غير معروف</span>
+        <button style="background: white; color: black; padding: 10px 30px; border-radius: 12px; font-weight: 900; cursor: pointer; border: none;" onclick="closeResult()">متابعة</button>
+    </div>
+</div>
+
+<div class="main-container">
+    <h1 style="margin-top: 0;">فعالية ميرو</h1>
+    
+    <div class="input-group">
+        <input type="text" id="mainInput" class="q-input" placeholder="أدخل سؤالك المثير هنا..." autocomplete="off">
+    </div>
+
+    <div class="wheel-outer">
+        <div class="pointer" style="position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 40px; z-index: 100;">
+            <svg viewBox="0 0 30 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15 40L0 0H30L15 40Z" fill="#fbc531"/>
+            </svg>
+        </div>
+        <div class="wheel-inner">
+            <canvas id="wheel" width="800" height="800"></canvas>
+        </div>
+    </div>
+
+    <button id="spinBtn" class="spin-button" onclick="startSpin()">إطلاق عجلة الحظ 🔥</button>
+    <p style="margin-top: 20px; font-size: 12px; color: #555;">حقوق التصميم محفوظة لـ عبود</p>
+</div>
+
+<script>
+    // قائمة الأسماء
+    const names = [
+        "امجد وسام", "رانيا عمار", "الحسن بسام", "بسمه", "ميرو 😅", 
+        "رشا احمد 💅🏻", "𝒓𝒆𝒕𝒂𝒈", "إبراهيم", "نبأ محمد خيري", 
+        "زينة محمد سعدي", "شهد طه✨", "عبد الستار طلال علي", 
+        "ريهام عمار", "غدير نجوان 🙈", "تبارك عبود 🌚", "فاطمه علي", 
+        "ملاك لؤي🤭", "ايه علي", "ابرار²", "مريم محمد", "عباس ماجد"
+    ];
+
+    let usedNames = [];
+    const canvas = document.getElementById('wheel');
+    const ctx = canvas.getContext('2d');
+    const center = 400;
+    const sliceAngle = (2 * Math.PI) / names.length;
+    let currentRotation = 0;
+
+    function draw() {
+        names.forEach((name, i) => {
+            const angle = i * sliceAngle;
+            ctx.beginPath();
+            // تلوين الأقسام بلونين متناوبين
+            ctx.fillStyle = i % 2 === 0 ? '#0a0a0a' : '#1a1a1a'; 
+            ctx.moveTo(center, center);
+            ctx.arc(center, center, center, angle, angle + sliceAngle);
+            ctx.fill();
+
+            ctx.save();
+            ctx.translate(center, center);
+            ctx.rotate(angle + sliceAngle / 2);
+            ctx.textAlign = "right";
+            // تلوين النصوص بلونين متناوبين لتعزيز الوضوح
+            ctx.fillStyle = i % 2 === 0 ? "#00f2fe" : "#ffffff";
+            ctx.font = "bold 22px Tajawal";
+            ctx.fillText(name, center - 40, 10);
+            ctx.restore();
+        });
+        ctx.beginPath();
+        ctx.arc(center, center, 20, 0, Math.PI * 2);
+        ctx.fillStyle = "#fff";
+        ctx.fill();
+    }
+    draw();
+
+    function closeWelcome() {
+        const overlay = document.getElementById('overlay');
+        overlay.style.transform = 'translateY(-100%) scale(1.2)';
+        overlay.style.opacity = '0';
+        setTimeout(() => overlay.style.display = 'none', 1000);
+    }
+
+    function startSpin() {
+        const input = document.getElementById('mainInput');
+        if(!input.value.trim()) { 
+            input.style.borderColor = "red"; 
+            return; 
+        }
+        input.style.borderColor = "rgba(255,255,255,0.1)";
+
+        const btn = document.getElementById('spinBtn');
+        btn.disabled = true;
+
+        if (usedNames.length === names.length) {
+            usedNames = [];
+        }
+
+        let availableNames = names.filter(n => !usedNames.includes(n));
+        let selectedName = availableNames[Math.floor(Math.random() * availableNames.length)];
+        usedNames.push(selectedName);
+
+        const nameIndex = names.indexOf(selectedName);
+        const sectionDeg = 360 / names.length;
+        
+        // حساب التوقف بحيث يكون الاسم المختار بالضبط تحت السهم الأصفر
+        // السهم موجود في الأعلى (زاوية 270 ميكانيكياً في الكانفاس)
+        const stopAngle = 360 - (nameIndex * sectionDeg) - (sectionDeg / 2) - 90;
+        const extraSpins = (Math.floor(Math.random() * 5) + 8) * 360; 
+        
+        currentRotation += extraSpins + (stopAngle - (currentRotation % 360) + 360) % 360;
+
+        canvas.style.transform = `rotate(${currentRotation}deg)`;
+
+        setTimeout(() => {
+            btn.disabled = false;
+            document.getElementById('resQ').innerText = `"${input.value}"`;
+            document.getElementById('resName').innerText = selectedName;
+            document.getElementById('resultOverlay').style.display = 'flex';
+            input.value = "";
+        }, 8500);
+    }
+
+    function closeResult() { 
+        document.getElementById('resultOverlay').style.display = 'none'; 
+    }
+</script>
+
+</body>
+</html>
