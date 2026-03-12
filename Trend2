@@ -36,7 +36,7 @@
         }
         @keyframes stars { from { background-position: 0 0; } to { background-position: 10000px 5000px; } }
 
-        /* شاشة الترحيب المطورة */
+        /* شاشة الترحيب */
         #overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.95);
             z-index: 5000; display: flex; justify-content: center; align-items: center;
@@ -54,7 +54,6 @@
             overflow: hidden;
         }
 
-        /* تأثير لمعان للكرت */
         .welcome-card::before {
             content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
             background: conic-gradient(transparent, rgba(0, 242, 254, 0.2), transparent 30%);
@@ -80,7 +79,6 @@
             font-weight: 500; text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
-        /* حاوية العجلة وباقي العناصر */
         .main-container {
             width: 95%; max-width: 450px; text-align: center; z-index: 10;
         }
@@ -114,7 +112,6 @@
             box-shadow: 0 10px 30px rgba(79, 172, 254, 0.4); transition: 0.3s;
         }
 
-        /* نافذة النتيجة */
         #resultOverlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.3);
             z-index: 6000; display: none; justify-content: center; align-items: center;
@@ -147,7 +144,7 @@
         <div class="res-title" style="color: var(--primary); font-size: 11px; margin-bottom: 10px;">بخصوص سؤالك</div>
         <div class="res-question" id="resQ" style="font-size: 16px; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">السؤال هنا؟</div>
         <div style="font-size: 10px; color: #aaa; margin-bottom: 5px;">وقع الاختيار على:</div>
-        <span class="res-name" style="font-size: 30px; font-weight: 900; background: linear-gradient(to right, var(--accent), #fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: block; margin-bottom: 20px;">غير معروف</span>
+        <span class="res-name" id="resName" style="font-size: 30px; font-weight: 900; background: linear-gradient(to right, var(--accent), #fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: block; margin-bottom: 20px;">غير معروف</span>
         <button style="background: white; color: black; padding: 10px 30px; border-radius: 12px; font-weight: 900; cursor: pointer; border: none;" onclick="closeResult()">متابعة</button>
     </div>
 </div>
@@ -175,18 +172,28 @@
 </div>
 
 <script>
-    const names = Array(12).fill("غير معروف");
+    // قائمة الأسماء
+    const names = [
+        "امجد وسام", "رانيا عمار", "الحسن بسام", "بسمه", "ميرو 😅", 
+        "رشا احمد 💅🏻", "𝒓𝒆𝒕𝒂𝒈", "إبراهيم", "نبأ محمد خيري", 
+        "زينة محمد سعدي", "شهد طه✨", "عبد الستار طلال علي", 
+        "ريهام عمار", "غدير نجوان 🙈", "تبارك عبود 🌚", "فاطمه علي", 
+        "ملاك لؤي🤭", "ايه علي", "ابرار²", "مريم محمد", "عباس ماجد"
+    ];
+
+    let usedNames = [];
     const canvas = document.getElementById('wheel');
     const ctx = canvas.getContext('2d');
     const center = 400;
     const sliceAngle = (2 * Math.PI) / names.length;
-    let rotation = 0;
+    let currentRotation = 0;
 
     function draw() {
         names.forEach((name, i) => {
             const angle = i * sliceAngle;
             ctx.beginPath();
-            ctx.fillStyle = i % 2 === 0 ? '#0a0a0a' : '#111';
+            // تلوين الأقسام بلونين متناوبين
+            ctx.fillStyle = i % 2 === 0 ? '#0a0a0a' : '#1a1a1a'; 
             ctx.moveTo(center, center);
             ctx.arc(center, center, center, angle, angle + sliceAngle);
             ctx.fill();
@@ -195,8 +202,9 @@
             ctx.translate(center, center);
             ctx.rotate(angle + sliceAngle / 2);
             ctx.textAlign = "right";
+            // تلوين النصوص بلونين متناوبين لتعزيز الوضوح
             ctx.fillStyle = i % 2 === 0 ? "#00f2fe" : "#ffffff";
-            ctx.font = "bold 28px Tajawal";
+            ctx.font = "bold 22px Tajawal";
             ctx.fillText(name, center - 40, 10);
             ctx.restore();
         });
@@ -216,21 +224,47 @@
 
     function startSpin() {
         const input = document.getElementById('mainInput');
-        if(!input.value.trim()) { input.style.borderColor = "red"; return; }
+        if(!input.value.trim()) { 
+            input.style.borderColor = "red"; 
+            return; 
+        }
+        input.style.borderColor = "rgba(255,255,255,0.1)";
+
         const btn = document.getElementById('spinBtn');
         btn.disabled = true;
-        const extra = Math.floor(Math.random() * 360) + 3600;
-        rotation += extra;
-        canvas.style.transform = `rotate(${rotation}deg)`;
+
+        if (usedNames.length === names.length) {
+            usedNames = [];
+        }
+
+        let availableNames = names.filter(n => !usedNames.includes(n));
+        let selectedName = availableNames[Math.floor(Math.random() * availableNames.length)];
+        usedNames.push(selectedName);
+
+        const nameIndex = names.indexOf(selectedName);
+        const sectionDeg = 360 / names.length;
+        
+        // حساب التوقف بحيث يكون الاسم المختار بالضبط تحت السهم الأصفر
+        // السهم موجود في الأعلى (زاوية 270 ميكانيكياً في الكانفاس)
+        const stopAngle = 360 - (nameIndex * sectionDeg) - (sectionDeg / 2) - 90;
+        const extraSpins = (Math.floor(Math.random() * 5) + 8) * 360; 
+        
+        currentRotation += extraSpins + (stopAngle - (currentRotation % 360) + 360) % 360;
+
+        canvas.style.transform = `rotate(${currentRotation}deg)`;
+
         setTimeout(() => {
             btn.disabled = false;
             document.getElementById('resQ').innerText = `"${input.value}"`;
+            document.getElementById('resName').innerText = selectedName;
             document.getElementById('resultOverlay').style.display = 'flex';
             input.value = "";
         }, 8500);
     }
 
-    function closeResult() { document.getElementById('resultOverlay').style.display = 'none'; }
+    function closeResult() { 
+        document.getElementById('resultOverlay').style.display = 'none'; 
+    }
 </script>
 
 </body>
